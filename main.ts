@@ -27,6 +27,10 @@ cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
 if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
 
+// Sanity check: the guide's trophy data must exist before we ask the vendored library to build the dossier from it.
+const trophiesPath = join(here, 'app', 'data', 'trophies.json');
+console.log(`[gta6-trophy-guide-01] app/data/trophies.json ${existsSync(trophiesPath) ? 'found' : 'MISSING'} at ${trophiesPath}`);
+
 // The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
 // scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files and directories in app/ or
 // 48 MiB of app files: app/ counts beside /output's own 1000-entry cap, its screenshots/ and dossier.json).
@@ -42,4 +46,5 @@ writeFileSync(join(out, 'dossier.json'), dossierBytes);
 // decoded through Buffer.from(...).toString() first and only then parsed -- JSON.parse never runs on raw bytes.
 const dossierText = Buffer.from(dossierBytes).toString('utf8');
 const dossier = JSON.parse(dossierText);
-console.log(`[gta6-trophy-guide-01] wrote ${out}/dossier.json (${dossierBytes.byteLength} bytes, schema ${dossier.schema ?? 'unknown'}).`);
+const sizeKiB = (dossierBytes.byteLength / 1024).toFixed(1);
+console.log(`[gta6-trophy-guide-01] wrote ${out}/dossier.json (${sizeKiB} KiB, schema ${dossier.schema ?? 'unknown'}).`);
