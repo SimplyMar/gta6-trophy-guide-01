@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTA VI Trophy Guide &amp; Tracker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <h1>GTA VI Trophy Guide</h1>
+    <p class="tagline">Offline PS5 platinum roadmap &amp; tracker</p>
+  </div>
+  <div class="progress-block">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <p id="progress">0 / 55 earned</p>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab active" id="tabChecklist" data-view="checklist" role="tab" aria-selected="true">Checklist</button>
+  <button class="tab" id="tabRoadmap" data-view="roadmap" role="tab" aria-selected="false">Platinum Roadmap</button>
+</nav>
+
+<div class="controls">
+  <input type="search" id="search" placeholder="Search trophies..." autocomplete="off">
+  <label>Category
+    <select id="category">
+      <option value="all">All categories</option>
+      <option value="story">Story</option>
+      <option value="missable">Missable</option>
+      <option value="collectibles">Collectibles</option>
+      <option value="activities">Activities</option>
+      <option value="combat">Combat</option>
+      <option value="exploration">Exploration</option>
+    </select>
+  </label>
+  <label>Grade
+    <select id="grade">
+      <option value="all">All grades</option>
+      <option value="platinum">Platinum</option>
+      <option value="gold">Gold</option>
+      <option value="silver">Silver</option>
+      <option value="bronze">Bronze</option>
+    </select>
+  </label>
+  <label class="toggle"><input type="checkbox" id="spoiler"> Spoiler mode</label>
+  <div class="spacer"></div>
+  <button id="exportBtn" type="button">Export progress</button>
+  <label class="import">Import<input id="importInput" type="file" accept="application/json"></label>
+</div>
+
+<main class="layout">
+  <section class="list-pane" id="checklistPane">
+    <ul class="trophy-list" id="trophyList"></ul>
+  </section>
+
+  <section class="list-pane hidden" id="roadmapPane">
+    <div id="roadmapStages"></div>
+  </section>
+
+  <aside class="detail-pane" id="detailPane">
+    <div class="detail-empty" id="detailEmpty">Select a trophy to read its guide.</div>
+    <div class="detail-card hidden" id="detailCard">
+      <div class="detail-head">
+        <span class="badge grade" id="dGrade"></span>
+        <span class="badge missable hidden" id="dMissable">Missable</span>
+        <span class="badge hidden-flag hidden" id="dHiddenFlag">Hidden</span>
+      </div>
+      <h2 id="dName"></h2>
+      <p class="d-desc" id="dDesc"></p>
+      <div class="d-meta">
+        <span id="dCategory" class="chip"></span>
+        <span id="dStage" class="chip"></span>
+      </div>
+      <h3>Selected Trophy Guide</h3>
+      <p id="dGuide" class="d-guide"></p>
+      <div class="source-card">
+        <span class="source-label">Cited Source</span>
+        <a id="dSourceLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+      </div>
+      <label class="earn-toggle"><input type="checkbox" id="dEarned"> Mark earned</label>
+    </div>
+  </aside>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+[
+  { "file": "1-checklist.jpg", "path": "/", "viewport": { "width": 1280, "height": 800 } },
+  { "file": "2-roadmap.jpg", "path": "/?view=roadmap", "viewport": { "width": 1280, "height": 800 } },
+  { "file": "3-spoiler.jpg", "path": "/?category=story&spoiler=1&earned=5", "viewport": { "width": 1280, "height": 800 } },
+  { "file": "4-collectibles.jpg", "path": "/?category=collectibles&selected=30", "viewport": { "width": 1280, "height": 800 } }
+]
