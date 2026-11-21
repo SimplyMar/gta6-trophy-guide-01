@@ -3,41 +3,56 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GTA VI Trophy Guide &amp; Tracker</title>
-<link rel="stylesheet" href="style.css">
+<title>Leonida Platinum Casebook — GTA VI Trophy Guide</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <header class="topbar">
   <div class="brand">
-    <h1>GTA VI Trophy Guide</h1>
-    <p class="tagline">Offline PS5 platinum roadmap &amp; tracker</p>
+    <p class="kicker">Leonida Platinum Casebook</p>
+    <h1>GTA VI Trophy Guide &amp; Tracker</h1>
   </div>
-  <div class="progress-block">
-    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    <p id="progress">0 / 55 earned</p>
+
+  <div class="kpi-group">
+    <div class="kpi-progress">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <p id="progressText">0 / 55 earned</p>
+    </div>
+    <div class="kpi-pills" id="gradePills" aria-label="Grade breakdown"></div>
+    <span class="kpi-badge missable" id="missableBadge">0 Missable</span>
+    <span class="kpi-badge online" id="onlineBadge">Online: 0</span>
+  </div>
+
+  <div class="kpi-actions">
+    <button class="btn btn-ghost" id="exportBtn" type="button">Export JSON</button>
+    <label class="btn btn-ghost file-label" for="importInput">Import JSON</label>
+    <input class="visually-hidden" id="importInput" type="file" accept="application/json">
   </div>
 </header>
 
 <nav class="tabs" role="tablist">
-  <button class="tab active" id="tabChecklist" data-view="checklist" role="tab" aria-selected="true">Checklist</button>
-  <button class="tab" id="tabRoadmap" data-view="roadmap" role="tab" aria-selected="false">Platinum Roadmap</button>
+  <button class="tab" data-view="checklist" role="tab">Checklist</button>
+  <button class="tab" data-view="roadmap" role="tab">Platinum Roadmap</button>
+  <button class="tab" data-view="missables" role="tab">Missables &amp; Counters</button>
+  <button class="tab" data-view="backup" role="tab">Export / Import</button>
 </nav>
 
-<div class="controls">
-  <input type="search" id="search" placeholder="Search trophies..." autocomplete="off">
+<div class="controls" id="controls">
+  <input type="search" id="search" placeholder="Search trophies…" autocomplete="off">
   <label>Category
-    <select id="category">
+    <select id="categoryFilter">
       <option value="all">All categories</option>
       <option value="story">Story</option>
       <option value="missable">Missable</option>
       <option value="collectibles">Collectibles</option>
       <option value="activities">Activities</option>
       <option value="combat">Combat</option>
-      <option value="exploration">Exploration</option>
+      <option value="online">Online</option>
     </select>
   </label>
   <label>Grade
-    <select id="grade">
+    <select id="gradeFilter">
       <option value="all">All grades</option>
       <option value="platinum">Platinum</option>
       <option value="gold">Gold</option>
@@ -45,46 +60,24 @@
       <option value="bronze">Bronze</option>
     </select>
   </label>
-  <label class="toggle"><input type="checkbox" id="spoiler"> Spoiler mode</label>
+  <label>Status
+    <select id="statusFilter">
+      <option value="all">All</option>
+      <option value="remaining">Remaining</option>
+      <option value="earned">Earned</option>
+    </select>
+  </label>
   <div class="spacer"></div>
-  <button id="exportBtn" type="button">Export progress</button>
-  <label class="import">Import<input id="importInput" type="file" accept="application/json"></label>
+  <label class="toggle"><input type="checkbox" id="spoilerShield"> Spoiler Shield</label>
 </div>
 
-<main class="layout">
-  <section class="list-pane" id="checklistPane">
-    <ul class="trophy-list" id="trophyList"></ul>
-  </section>
-
-  <section class="list-pane hidden" id="roadmapPane">
-    <div id="roadmapStages"></div>
-  </section>
-
-  <aside class="detail-pane" id="detailPane">
-    <div class="detail-empty" id="detailEmpty">Select a trophy to read its guide.</div>
-    <div class="detail-card hidden" id="detailCard">
-      <div class="detail-head">
-        <span class="badge grade" id="dGrade"></span>
-        <span class="badge missable hidden" id="dMissable">Missable</span>
-        <span class="badge hidden-flag hidden" id="dHiddenFlag">Hidden</span>
-      </div>
-      <h2 id="dName"></h2>
-      <p class="d-desc" id="dDesc"></p>
-      <div class="d-meta">
-        <span id="dCategory" class="chip"></span>
-        <span id="dStage" class="chip"></span>
-      </div>
-      <h3>Selected Trophy Guide</h3>
-      <p id="dGuide" class="d-guide"></p>
-      <div class="source-card">
-        <span class="source-label">Cited Source</span>
-        <a id="dSourceLink" href="#" target="_blank" rel="noopener noreferrer"></a>
-      </div>
-      <label class="earn-toggle"><input type="checkbox" id="dEarned"> Mark earned</label>
-    </div>
-  </aside>
+<main class="layout" id="layout">
+  <section class="view-pane" id="viewRoot" aria-live="polite"></section>
+  <aside class="detail-pane" id="detailPane"></aside>
 </main>
 
-<script type="module" src="app.js"></script>
+<p class="footnote">Fan-made, offline reference. Not affiliated with or endorsed by Rockstar Games or Take-Two Interactive.</p>
+
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
