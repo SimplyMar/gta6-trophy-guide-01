@@ -1,5 +1,5 @@
 // Fetches app/data/trophies.json once and computes derived totals used across every view: grade
-// breakdown, missable count, per-stage roadmap progress, and the Next Up priority queue.
+// breakdown, missable count, per-stage roadmap progress, the Next Up priority queue, and inline SVG trophy emblems.
 
 export async function loadData() {
   const res = await fetch('data/trophies.json');
@@ -21,10 +21,14 @@ export function onlineCount(trophies) {
   return trophies.filter((t) => t.category === 'online').length;
 }
 
-/** Progress label for a trophy given its store, e.g. "18 / 42" or null if not a counted trophy. */
+/** Progress label for a trophy given its store, e.g. "12 / 18" or "$85,000 / $250,000" */
 export function progressLabel(t, store) {
   if (!t.psnTarget || t.psnTarget <= 1) return null;
-  return `${store.getProgress(t.id).toLocaleString()} / ${t.psnTarget.toLocaleString()}`;
+  const current = store.getProgress(t.id);
+  if (t.psnTarget >= 10000) {
+    return `$${current.toLocaleString()} / $${t.psnTarget.toLocaleString()}`;
+  }
+  return `${current.toLocaleString()} / ${t.psnTarget.toLocaleString()}`;
 }
 
 export function progressFraction(t, store) {
@@ -49,17 +53,17 @@ export function stageProgress(doc, store) {
  * The "Next Up" priority queue: unearned trophies ordered missable-and-close-to-cutoff first,
  * then by roadmap stage, then by how close a counted trophy already is to its target.
  */
-export function nextUpQueue(trophies, store, limit = 6) {
+export function nextUpQueue(trophies, store, limit = 5) {
   const unearned = trophies.filter((t) => !store.isEarned(t.id));
   const score = (t) => {
     let s = 0;
-    if (t.missable) s -= 1000;
-    s += t.roadmapStage * 100;
+    if (t.missable) s -= 2000;
+    s += (t.roadmapStage ?? 4) * 100;
     if (t.psnTarget && t.psnTarget > 1) {
       const remaining = 1 - progressFraction(t, store);
-      s += remaining * 50;
+      s += remaining * 40;
     } else {
-      s += 50;
+      s += 60;
     }
     return s;
   };
@@ -70,13 +74,30 @@ export function nextUpQueue(trophies, store, limit = 6) {
 }
 
 export function estimatedPlatinumTime(doc) {
-  // Sums each stage's low/high hour estimate into a single range.
   let lo = 0;
   let hi = 0;
   for (const stage of doc.stages) {
-    const [a, b] = stage.estimateHours.split('-').map(Number);
-    lo += a;
-    hi += b || a;
+    const [a, b] = (stage.estimateHours ?? '0-0').split('-').map(Number);
+    lo += a || 0;
+    hi += b || a || 0;
   }
-  return `${lo}-${hi} hours`;
+  return lo > 0 ? `~${lo}-${hi} hours` : '~200-250 hours';
+}
+
+/** Clean, high-contrast inline SVG trophy emblems */
+export function trophySvg(grade, size = 18) {
+  const colors = {
+    platinum: { main: '#7dd3fc', rim: '#38bdf8', cup: '#0284c7', star: '#f0f9ff' },
+    gold: { main: '#f0b94a', rim: '#f59e0b', cup: '#d97706', star: '#fffbeb' },
+    silver: { main: '#cbd5e1', rim: '#94a3b8', cup: '#64748b', star: '#ffffff' },
+    bronze: { main: '#fb923c', rim: '#ea580c', cup: '#c2410c', star: '#fff7ed' }
+  }[grade] || { main: '#cbd5e1', rim: '#94a3b8', cup: '#64748b', star: '#ffffff' };
+
+  return `<svg class="trophy-emblem emblem-${grade}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M5 3.5H19V9.5C19 13.0899 15.866 16 12 16C8.13401 16 5 13.0899 5 9.5V3.5Z" fill="${colors.cup}" stroke="${colors.rim}" stroke-width="1.5"/>
+    <path d="M5 5.5H2.5C1.67157 5.5 1 6.17157 1 7V8C1 10.2091 2.79086 12 5 12V5.5Z" fill="${colors.cup}" stroke="${colors.rim}" stroke-width="1.2"/>
+    <path d="M19 5.5H21.5C22.3284 5.5 23 6.17157 23 7V8C23 10.2091 21.2091 12 19 12V5.5Z" fill="${colors.cup}" stroke="${colors.rim}" stroke-width="1.2"/>
+    <path d="M12 16V19.5M8 21.5H16" stroke="${colors.rim}" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="12" cy="8.5" r="2" fill="${colors.star}" opacity="0.95"/>
+  </svg>`;
 }

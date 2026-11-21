@@ -1,18 +1,36 @@
 // Boot: loads data, wires up the store, routes URL query params (seed, view, category, grade,
-// status, search, spoiler, selected) to state, wires filters and keyboard shortcuts, and renders
+// status, search, spoiler, selected, panel) to state, wires filters and keyboard shortcuts, and renders
 // every view. Also flags window.__shotReady for headless screenshot capture once painted.
+//
+// Secondary views (roadmap, missables, backup) are loaded on-demand via dynamic import() to keep
+// the initial first-load footprint ultra-lean.
 
 import { loadData, gradeTotals, missableCount, onlineCount } from './data.js';
 import { createStore } from './store.js';
 import { applyFilters } from './filters.js';
 import { renderChecklist } from './views/checklist.js';
-import { renderRoadmap } from './views/roadmap.js';
-import { renderMissables } from './views/missables.js';
-import { renderBackup } from './views/backup.js';
 import { renderDetail } from './views/detail.js';
 
 const GRADE_LABEL = { platinum: 'P', gold: 'G', silver: 'S', bronze: 'B' };
 const VIEWS = ['checklist', 'roadmap', 'missables', 'backup'];
+
+// Lazy-loaded module caches for secondary views
+let roadmapModule = null;
+let missablesModule = null;
+let backupModule = null;
+
+async function getRoadmapModule() {
+  if (!roadmapModule) roadmapModule = await import('./views/roadmap.js');
+  return roadmapModule;
+}
+async function getMissablesModule() {
+  if (!missablesModule) missablesModule = await import('./views/missables.js');
+  return missablesModule;
+}
+async function getBackupModule() {
+  if (!backupModule) backupModule = await import('./views/backup.js');
+  return backupModule;
+}
 
 const params = new URLSearchParams(location.search);
 const seeded = params.get('seed') === 'demo';
@@ -38,6 +56,7 @@ const els = {
   onlineBadge: document.getElementById('onlineBadge'),
   exportBtn: document.getElementById('exportBtn'),
   importInput: document.getElementById('importInput'),
+  panelBackupBtn: document.getElementById('panelBackupBtn'),
   layout: document.getElementById('layout'),
 };
 
@@ -50,6 +69,7 @@ const state = {
   grade: params.get('grade') ?? 'all',
   status: params.get('status') ?? 'all',
   selectedId: params.has('selected') ? Number(params.get('selected')) : firstNonHiddenId,
+  panelBackup: params.get('panel') === 'backup',
 };
 
 if (params.get('spoiler') === '1') store.setShield(true);
@@ -61,13 +81,18 @@ function syncControlsToState() {
   els.gradeFilter.value = state.grade;
   els.statusFilter.value = state.status;
   els.spoilerShield.checked = store.getShield();
+
   for (const tab of els.tabs) {
     const active = tab.dataset.view === state.view;
     tab.classList.toggle('active', active);
     tab.setAttribute('aria-selected', String(active));
   }
+
   els.controls.classList.toggle('hidden', state.view === 'backup');
   els.layout.classList.toggle('full-width', state.view === 'backup');
+  if (els.panelBackupBtn) {
+    els.panelBackupBtn.classList.toggle('active', state.panelBackup);
+  }
 }
 
 function renderHeader() {
@@ -84,6 +109,7 @@ function renderHeader() {
 
 function selectTrophy(id) {
   state.selectedId = id;
+  state.panelBackup = false;
   renderAll();
 }
 
@@ -110,12 +136,23 @@ function currentSelected() {
   return trophies.find((t) => t.id === state.selectedId) ?? null;
 }
 
-function renderDetailPane() {
+async function renderDetailPane() {
   if (state.view === 'backup') {
     els.detailPane.classList.add('hidden');
     return;
   }
   els.detailPane.classList.remove('hidden');
+
+  if (state.panelBackup) {
+    const backupMod = await getBackupModule();
+    backupMod.renderBackup(els.detailPane, store, {
+      game: doc.game,
+      onImport: handleImport,
+      compact: true,
+    });
+    return;
+  }
+
   renderDetail(els.detailPane, currentSelected(), store, {
     onToggleEarned: toggleEarned,
     onProgressChange: changeProgress,
@@ -123,7 +160,7 @@ function renderDetailPane() {
   });
 }
 
-function renderAll() {
+async function renderAll() {
   renderHeader();
   syncControlsToState();
 
@@ -135,32 +172,41 @@ function renderAll() {
       onToggleEarned: toggleEarned,
     });
   } else if (state.view === 'roadmap') {
-    renderRoadmap(els.viewRoot, doc, store, {
+    const mod = await getRoadmapModule();
+    mod.renderRoadmap(els.viewRoot, doc, store, {
       selectedId: state.selectedId,
       onSelect: selectTrophy,
       onToggleEarned: toggleEarned,
     });
   } else if (state.view === 'missables') {
-    renderMissables(els.viewRoot, trophies, store, {
+    const mod = await getMissablesModule();
+    mod.renderMissables(els.viewRoot, trophies, store, {
       selectedId: state.selectedId,
       onSelect: selectTrophy,
       onProgressChange: changeProgress,
     });
   } else if (state.view === 'backup') {
-    renderBackup(els.viewRoot, store, { game: doc.game, onImport: handleImport });
+    const mod = await getBackupModule();
+    mod.renderBackup(els.viewRoot, store, {
+      game: doc.game,
+      onImport: handleImport,
+      compact: false,
+    });
   }
 
-  renderDetailPane();
+  await renderDetailPane();
 }
 
 function setView(view) {
   state.view = view;
+  state.panelBackup = false;
   renderAll();
 }
 
 for (const tab of els.tabs) {
   tab.addEventListener('click', () => setView(tab.dataset.view));
 }
+
 els.search.addEventListener('input', () => {
   state.search = els.search.value;
   renderAll();
@@ -182,6 +228,13 @@ els.spoilerShield.addEventListener('change', () => {
   renderAll();
 });
 
+if (els.panelBackupBtn) {
+  els.panelBackupBtn.addEventListener('click', () => {
+    state.panelBackup = !state.panelBackup;
+    renderAll();
+  });
+}
+
 els.exportBtn.addEventListener('click', () => {
   const payload = store.exportPayload(doc.game);
   const a = document.createElement('a');
@@ -190,6 +243,7 @@ els.exportBtn.addEventListener('click', () => {
   a.click();
   URL.revokeObjectURL(a.href);
 });
+
 els.importInput.addEventListener('change', async () => {
   const file = els.importInput.files[0];
   if (!file) return;
@@ -215,9 +269,9 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-renderAll();
+await renderAll();
 
-// Signal to a headless screenshot harness that the requested view has fully painted.
+// Signal to headless screenshot harness that the requested view has fully painted.
 requestAnimationFrame(() => requestAnimationFrame(() => {
   window.__shotReady = true;
 }));

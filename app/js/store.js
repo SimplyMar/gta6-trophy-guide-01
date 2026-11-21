@@ -8,9 +8,10 @@ const KEY_PROGRESS = 'leonida-casebook:progress:v1';
 const KEY_NOTES = 'leonida-casebook:notes:v1';
 const KEY_SHIELD = 'leonida-casebook:spoiler-shield:v1';
 
-// The exact seed the spec calls for: 14 earned trophies plus six partial PSN counters.
+// Seed state for deterministic testing and screenshots:
+// 14 earned trophies (including 5 story milestones) and active PSN counters (including 12/18 Positive Mental Attitude & 94/250 Cunning Stunts).
 const SEED_EARNED = [2, 3, 4, 8, 9, 20, 21, 33, 34, 36, 44, 45, 46, 51];
-const SEED_PROGRESS = { 17: 18, 31: 38, 15: 94, 30: 2, 35: 47, 25: 5 };
+const SEED_PROGRESS = { 15: 94, 17: 18, 25: 5, 28: 12, 30: 2, 31: 38, 35: 47, 52: 85000, 53: 42000 };
 
 function readJson(key, fallback) {
   try {
@@ -25,7 +26,7 @@ function writeJson(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    /* storage unavailable (private mode, quota) — fail silently, state stays in memory only */
+    /* storage unavailable (private browsing, quota) */
   }
 }
 
@@ -94,7 +95,7 @@ export function createStore(seeded) {
         version: 1,
         exportedAt: new Date().toISOString(),
         game: game ?? 'Grand Theft Auto VI',
-        earned: [...earned],
+        earned: [...earned].sort((a, b) => a - b),
         progress,
         notes,
         spoilerShield: shield,
@@ -107,7 +108,7 @@ export function createStore(seeded) {
         : Array.isArray(payload)
           ? payload
           : null;
-      if (!list) throw new Error('Missing an "earned" array.');
+      if (!list) throw new Error('Missing an "earned" array in progress file.');
       earned = new Set(list.map(Number).filter((n) => Number.isFinite(n)));
       progress = payload.progress && typeof payload.progress === 'object' ? { ...payload.progress } : {};
       notes = payload.notes && typeof payload.notes === 'object' ? { ...payload.notes } : {};

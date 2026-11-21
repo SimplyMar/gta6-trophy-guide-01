@@ -1,6 +1,6 @@
 [
-  { "file": "1-cover.jpg", "path": "/?seed=demo&selected=17", "viewport": { "width": 1280, "height": 800 } },
+  { "file": "1-cover.jpg", "path": "/?seed=demo&selected=28", "viewport": { "width": 1280, "height": 800 } },
   { "file": "2-roadmap.jpg", "path": "/?seed=demo&view=roadmap&selected=14", "viewport": { "width": 1280, "height": 800 } },
-  { "file": "3-missables.jpg", "path": "/?seed=demo&view=missables&selected=25", "viewport": { "width": 1280, "height": 800 } },
-  { "file": "4-spoiler.jpg", "path": "/?seed=demo&category=story&spoiler=1&selected=5", "viewport": { "width": 1280, "height": 800 } }
+  { "file": "3-missables.jpg", "path": "/?seed=demo&view=missables&selected=15", "viewport": { "width": 1280, "height": 800 } },
+  { "file": "4-spoiler.jpg", "path": "/?seed=demo&category=story&spoiler=1&panel=backup&selected=5", "viewport": { "width": 1280, "height": 800 } }
 ]

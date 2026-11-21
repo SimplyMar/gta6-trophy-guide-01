@@ -3,7 +3,7 @@
 // story trophies.
 
 import { isRevealed, maskedLabel } from '../filters.js';
-import { progressLabel, progressFraction } from '../data.js';
+import { progressLabel, progressFraction, trophySvg } from '../data.js';
 
 const GRADE_LABEL = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', bronze: 'Bronze' };
 
@@ -29,8 +29,13 @@ export function renderChecklist(root, trophies, store, { selectedId, onSelect, o
     const box = document.createElement('input');
     box.type = 'checkbox';
     box.checked = earned;
+    box.title = earned ? 'Earned' : 'Mark earned';
     box.addEventListener('click', (e) => e.stopPropagation());
     box.addEventListener('change', () => onToggleEarned?.(t, box.checked));
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'ti-icon';
+    iconWrap.innerHTML = trophySvg(t.grade, 22);
 
     const body = document.createElement('div');
     body.className = 'ti-body';
@@ -50,9 +55,15 @@ export function renderChecklist(root, trophies, store, { selectedId, onSelect, o
     if (t.missable) {
       const mBadge = document.createElement('span');
       mBadge.className = 'badge missable';
-      mBadge.textContent = 'Missable';
+      mBadge.textContent = 'Hard Missable';
       title.append(mBadge);
+    } else if (t.category === 'missable') {
+      const cBadge = document.createElement('span');
+      cBadge.className = 'badge caution';
+      cBadge.textContent = 'Stranger Strand';
+      title.append(cBadge);
     }
+
     if (t.hidden) {
       const hBadge = document.createElement('span');
       hBadge.className = 'badge hidden-flag';
@@ -83,7 +94,7 @@ export function renderChecklist(root, trophies, store, { selectedId, onSelect, o
       body.append(row);
     }
 
-    li.append(box, body);
+    li.append(box, iconWrap, body);
     li.addEventListener('click', () => onSelect?.(t.id));
     list.append(li);
   }

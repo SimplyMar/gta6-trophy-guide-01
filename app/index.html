@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leonida Platinum Casebook — GTA VI Trophy Guide</title>
+<title>Leonida Platinum Casebook — GTA VI PS5 Trophy Guide &amp; Tracker</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -20,31 +20,50 @@
       <p id="progressText">0 / 55 earned</p>
     </div>
     <div class="kpi-pills" id="gradePills" aria-label="Grade breakdown"></div>
-    <span class="kpi-badge missable" id="missableBadge">0 Missable</span>
+    <span class="kpi-badge missable" id="missableBadge">1 Missable</span>
     <span class="kpi-badge online" id="onlineBadge">Online: 0</span>
   </div>
 
   <div class="kpi-actions">
-    <button class="btn btn-ghost" id="exportBtn" type="button">Export JSON</button>
-    <label class="btn btn-ghost file-label" for="importInput">Import JSON</label>
+    <button class="btn btn-ghost" id="exportBtn" type="button" title="Download save backup">Export JSON</button>
+    <label class="btn btn-ghost file-label" for="importInput" title="Restore save backup">Import JSON</label>
     <input class="visually-hidden" id="importInput" type="file" accept="application/json">
+    <button class="btn btn-panel" id="panelBackupBtn" type="button" title="Toggle live backup panel in right pane">Backup Panel</button>
   </div>
 </header>
 
+<div class="audit-strip" role="status" aria-label="Database verification audit">
+  <span class="audit-item"><span class="audit-dot"></span> <strong>55/55</strong> Official PS5 Trophies</span>
+  <span class="audit-sep">|</span>
+  <span class="audit-item"><span class="audit-badge p">1P</span> <span class="audit-badge g">2G</span> <span class="audit-badge s">6S</span> <span class="audit-badge b">46B</span></span>
+  <span class="audit-sep">|</span>
+  <span class="audit-item"><strong>0</strong> Online</span>
+  <span class="audit-sep">|</span>
+  <span class="audit-item alert"><strong>1</strong> Ch.1 Missable</span>
+  <span class="audit-sep">|</span>
+  <span class="audit-item"><strong>220+</strong> Cited Steps</span>
+  <span class="audit-sep">|</span>
+  <span class="audit-item highlight"><strong>26</strong> Verified Sources</span>
+  <span class="audit-sep">|</span>
+  <span class="audit-item success"><strong>100%</strong> Offline</span>
+</div>
+
 <nav class="tabs" role="tablist">
-  <button class="tab" data-view="checklist" role="tab">Checklist</button>
-  <button class="tab" data-view="roadmap" role="tab">Platinum Roadmap</button>
-  <button class="tab" data-view="missables" role="tab">Missables &amp; Counters</button>
-  <button class="tab" data-view="backup" role="tab">Export / Import</button>
+  <button class="tab" data-view="checklist" role="tab" aria-selected="true">Checklist</button>
+  <button class="tab" data-view="roadmap" role="tab" aria-selected="false">Platinum Roadmap</button>
+  <button class="tab" data-view="missables" role="tab" aria-selected="false">Missables &amp; Counters</button>
+  <button class="tab" data-view="backup" role="tab" aria-selected="false">Export / Import</button>
 </nav>
 
 <div class="controls" id="controls">
-  <input type="search" id="search" placeholder="Search trophies…" autocomplete="off">
+  <div class="search-wrap">
+    <input type="search" id="search" placeholder="Search trophies, guides, steps, or cutoffs (press /)…" autocomplete="off">
+  </div>
   <label>Category
     <select id="categoryFilter">
       <option value="all">All categories</option>
       <option value="story">Story</option>
-      <option value="missable">Missable</option>
+      <option value="missable">Missable &amp; Caution</option>
       <option value="collectibles">Collectibles</option>
       <option value="activities">Activities</option>
       <option value="combat">Combat</option>
@@ -68,7 +87,11 @@
     </select>
   </label>
   <div class="spacer"></div>
-  <label class="toggle"><input type="checkbox" id="spoilerShield"> Spoiler Shield</label>
+  <label class="toggle" title="Hide unearned secret story trophies to prevent spoilers">
+    <input type="checkbox" id="spoilerShield">
+    <span class="toggle-slider"></span>
+    <span class="toggle-text">Spoiler Shield</span>
+  </label>
 </div>
 
 <main class="layout" id="layout">
@@ -76,7 +99,9 @@
   <aside class="detail-pane" id="detailPane"></aside>
 </main>
 
-<p class="footnote">Fan-made, offline reference. Not affiliated with or endorsed by Rockstar Games or Take-Two Interactive.</p>
+<footer class="app-footer">
+  <p class="footnote">Fan-made, 100% offline PlayStation 5 reference. All 55 official trophies with original guides and inline verified citations. Not affiliated with or endorsed by Rockstar Games or Take-Two Interactive.</p>
+</footer>
 
 <script type="module" src="js/main.js"></script>
 </body>

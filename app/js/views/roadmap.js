@@ -1,102 +1,117 @@
-// The 4-stage Platinum Roadmap: stage completion bars, chapter/mission order, collectible
-// totals, an estimated platinum time & difficulty card, and the Next Up priority queue.
+// The 4-stage Platinum Roadmap: 1-row KPI ribbon, all 4 stages visible above the fold in 1280x800,
+// stage progress bars, chapter flow, and selectable trophy grid.
 
-import { stageProgress, nextUpQueue, estimatedPlatinumTime } from '../data.js';
+import { stageProgress, trophySvg } from '../data.js';
 import { isRevealed, maskedLabel } from '../filters.js';
 
-const GRADE_LABEL = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', bronze: 'Bronze' };
+const GRADE_LABEL = { platinum: 'P', gold: 'G', silver: 'S', bronze: 'B' };
 
 export function renderRoadmap(root, doc, store, { selectedId, onSelect, onToggleEarned } = {}) {
   root.innerHTML = '';
 
-  const summary = document.createElement('div');
-  summary.className = 'roadmap-summary-card';
-  summary.innerHTML = `
-    <div>
-      <span class="chip">Estimated Platinum Time</span>
-      <strong>${estimatedPlatinumTime(doc)}</strong>
+  // Compact 1-row Roadmap KPI ribbon
+  const ribbon = document.createElement('div');
+  ribbon.className = 'roadmap-kpi-ribbon';
+  ribbon.innerHTML = `
+    <div class="kpi-ribbon-item">
+      <span class="ribbon-label">Est. Time</span>
+      <strong class="ribbon-val">~200-250h</strong>
     </div>
-    <div>
-      <span class="chip">Overall Difficulty</span>
-      <strong>Moderate</strong>
+    <div class="kpi-ribbon-sep"></div>
+    <div class="kpi-ribbon-item">
+      <span class="ribbon-label">Difficulty</span>
+      <strong class="ribbon-val">4-7/10</strong>
+    </div>
+    <div class="kpi-ribbon-sep"></div>
+    <div class="kpi-ribbon-item">
+      <span class="ribbon-label">Playthroughs</span>
+      <strong class="ribbon-val">1 Run</strong>
+    </div>
+    <div class="kpi-ribbon-sep"></div>
+    <div class="kpi-ribbon-item highlight">
+      <span class="ribbon-label">No Mission Replay</span>
+      <strong class="ribbon-val">15 Rolling Saves</strong>
+    </div>
+    <div class="kpi-ribbon-sep"></div>
+    <div class="kpi-ribbon-item alert">
+      <span class="ribbon-label">Cheats</span>
+      <strong class="ribbon-val">Disables Trophies &amp; Saves</strong>
     </div>
   `;
-  root.append(summary);
+  root.append(ribbon);
 
-  const queue = nextUpQueue(doc.trophies, store, 6);
-  if (queue.length) {
-    const nextUp = document.createElement('div');
-    nextUp.className = 'next-up-card';
-    nextUp.innerHTML = `<h3>Next Up — Priority Queue</h3>`;
-    const ul = document.createElement('ul');
-    ul.className = 'next-up-list';
-    for (const t of queue) {
-      const revealed = isRevealed(t, store);
-      const label = revealed ? t.name : maskedLabel().name;
-      const li = document.createElement('li');
-      li.className = `next-up-item${selectedId === t.id ? ' selected' : ''}`;
-      li.innerHTML = `
-        <span class="ti-name">${label}</span>
-        ${t.missable ? '<span class="badge missable">Missable</span>' : ''}
-        <span class="chip">Stage ${t.roadmapStage}</span>
-      `;
-      li.addEventListener('click', () => onSelect?.(t.id));
-      ul.append(li);
-    }
-    nextUp.append(ul);
-    root.append(nextUp);
-  }
+  // 4 Stages Layout: Clean 2x2 or compact stacked grid where ALL 4 stages are visible above the fold
+  const stagesWrap = document.createElement('div');
+  stagesWrap.className = 'stages-container';
 
   const stages = stageProgress(doc, store);
   for (const stage of stages) {
     const block = document.createElement('section');
-    block.className = 'stage-block';
+    block.className = 'stage-card';
     const pct = stage.trophies.length ? Math.round((stage.earned / stage.trophies.length) * 100) : 0;
+
     block.innerHTML = `
-      <div class="stage-head">
-        <h2>Stage ${stage.stage} — ${stage.title}</h2>
-        <span class="chip">${stage.earned} / ${stage.trophies.length} earned</span>
+      <div class="stage-card-head">
+        <div class="stage-title-wrap">
+          <span class="stage-number-badge">Stage ${stage.stage}</span>
+          <h2 class="stage-title">${stage.title}</h2>
+        </div>
+        <div class="stage-stat-badge">${stage.earned} / ${stage.trophies.length} earned (${pct}%)</div>
       </div>
-      <p class="stage-sub">${stage.summary}</p>
-      <p class="stage-sub">Est. ${stage.estimateHours}h · ${stage.difficulty}</p>
+      <p class="stage-summary">${stage.summary}</p>
+      <div class="stage-meta-row">
+        <span class="stage-time">Est. ${stage.estimateHours}h</span>
+        <span class="stage-diff">Difficulty: ${stage.difficulty}</span>
+      </div>
       <div class="progress-bar stage-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
     `;
 
     const grid = document.createElement('div');
-    grid.className = 'stage-grid';
+    grid.className = 'stage-trophies-grid';
     for (const t of stage.trophies) {
       const earned = store.isEarned(t.id);
       const revealed = isRevealed(t, store);
       const label = revealed ? t.name : maskedLabel().name;
 
-      const row = document.createElement('div');
-      row.className = `stage-row${earned ? ' earned' : ''}${selectedId === t.id ? ' selected' : ''}`;
+      const chip = document.createElement('div');
+      chip.className = `stage-trophy-chip${earned ? ' earned' : ''}${selectedId === t.id ? ' selected' : ''}`;
+      chip.dataset.id = String(t.id);
 
       const box = document.createElement('input');
       box.type = 'checkbox';
       box.checked = earned;
+      box.title = earned ? 'Earned' : 'Mark earned';
       box.addEventListener('click', (e) => e.stopPropagation());
       box.addEventListener('change', () => onToggleEarned?.(t, box.checked));
 
-      const name = document.createElement('span');
-      name.className = 'ti-name';
-      name.textContent = label;
+      const emblemSpan = document.createElement('span');
+      emblemSpan.className = 'chip-emblem';
+      emblemSpan.innerHTML = trophySvg(t.grade, 14);
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'chip-name';
+      nameSpan.textContent = label;
 
       const gBadge = document.createElement('span');
-      gBadge.className = `badge grade ${t.grade}`;
+      gBadge.className = `badge grade ${t.grade} mini`;
       gBadge.textContent = GRADE_LABEL[t.grade];
 
-      row.append(box, name, gBadge);
+      chip.append(box, emblemSpan, nameSpan, gBadge);
+
       if (t.missable) {
         const mBadge = document.createElement('span');
-        mBadge.className = 'badge missable';
+        mBadge.className = 'badge missable mini';
         mBadge.textContent = 'Missable';
-        row.append(mBadge);
+        chip.append(mBadge);
       }
-      row.addEventListener('click', () => onSelect?.(t.id));
-      grid.append(row);
+
+      chip.addEventListener('click', () => onSelect?.(t.id));
+      grid.append(chip);
     }
+
     block.append(grid);
-    root.append(block);
+    stagesWrap.append(block);
   }
+
+  root.append(stagesWrap);
 }
